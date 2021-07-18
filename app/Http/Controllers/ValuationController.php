@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Valuation as Valuation;
 use App\Models\Configuration;
 use App\Http\Resources\Valuation as ValuationResource;
+use App\Mail\ValuationResult;
+use Mail;
 
 class ValuationController extends Controller
 {
@@ -269,9 +271,28 @@ class ValuationController extends Controller
         
         if( $valuation->save() )
         {
-            return new ValuationResource( $valuation );
+            $this->sendEmail($valuation->id);
         }
 
+    }
+
+    public function sendEmail(
+        Int $valuation
+    ) {
+        $valuation = Valuation::findOrFail($valuation);
+
+        Mail::to($valuation['email'])
+            ->cc('contato@easyvalue.com.br')
+            ->send(new ValuationResult($valuation));
+        /*$data = array('name'=>"Virat Gandhi");
+        
+        Mail::send(['text'=>'mail'], $data, function($message) {
+            $message->to($email, 'Valuation')->subject
+                ('Testando envio de email easyalue');
+            $message->from('contato@easyvalue.com.br','Easy Value');
+        });
+        echo 'enviado';
+        */
     }
 
 }

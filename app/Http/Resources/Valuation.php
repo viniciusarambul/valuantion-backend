@@ -5,7 +5,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class Valuation extends JsonResource {
   public function toArray($info){
-    dd($info);
+    
     //return parent::toArray($request);
     return [
       'id' => $this->id,
