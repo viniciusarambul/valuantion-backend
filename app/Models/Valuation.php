@@ -15,7 +15,6 @@ class Valuation extends Model
         'email', 
         'receita_autal',
         'projecao_receita',
-        'custos_diretos', 
-        'custos_fixos'
+        'custos'
     ];
 }

@@ -25,75 +25,6 @@ class ValuationController extends Controller
         return new ValuationResource( $valuation );
     }
 
-    /*public function makeValuation(Request $request)
-    {
-        $valuation = new Valuation;
-        
-        $valuation->nome_pessoa = $request->input('nome_pessoa');
-        $valuation->nome_empresa = $request->input('nome_empresa');
-        $valuation->email = $request->input('email');
-        $valuation->projecao_receita = $request->input('projecao_receita');
-        $valuation->receita_atual = $request->input('receita_atual');
-        
-        //$this->CalcularReceitaDosAnos($valuation->receita_atual, $valuation->projecao_receita);
-        
-
-        
-        $valuation->receita_ano_1 = $valuation->receita_atual+($valuation->receita_atual / 100 * $request->input('projecao_receita'));
-        $valuation->receita_ano_2 = $valuation->receita_ano_1+($valuation->receita_ano_1 / 100 * $request->input('projecao_receita'));
-        $valuation->receita_ano_3 = $valuation->receita_ano_2+($valuation->receita_ano_2 / 100 * $request->input('projecao_receita'));
-        $valuation->receita_ano_4 = $valuation->receita_ano_3+($valuation->receita_ano_3 / 100 * $request->input('projecao_receita'));
-        $valuation->receita_ano_5 = $valuation->receita_ano_4+($valuation->receita_ano_4 / 100 * $request->input('projecao_receita'));
-        
-        $valuation->custos_diretos = $request->input('custos_diretos');
-        $valuation->custos_fixos = $request->input('custos_fixos');
-        
-        /*$this->CalcularEbitdaAtual(
-            $valuation->receita_atual, 
-            $valuation->custos_diretos, 
-            $valuation->custos_fixos, 
-            $valuation->projecao_receita
-        );
-        
-        
-        $valuation->ebitda_atual = $request->input('receita_atual') - ($request->input('custos_diretos')+$request->input('custos_fixos'));
-        
-        $valuation->margem_ebitda = (100 * $valuation->ebitda_atual) / $valuation->receita_atual;
-
-        
-        $valuation->ebitda_ano_1 = ($valuation->receita_ano_1 / 100) * $valuation->margem_ebitda;
-        $valuation->ebitda_ano_2 = ($valuation->receita_ano_2 / 100) * $valuation->margem_ebitda;
-        $valuation->ebitda_ano_3 = ($valuation->receita_ano_3 / 100) * $valuation->margem_ebitda;
-        $valuation->ebitda_ano_4 = ($valuation->receita_ano_4 / 100) * $valuation->margem_ebitda;
-        $valuation->ebitda_ano_5 = ($valuation->receita_ano_5 / 100) * $valuation->margem_ebitda;
-        
-        $configuration = Configuration::where('id', 1)->get();
-        foreach($configuration as $config) {
-            $ativo = ($config->taxa_selic + 0.2509);
-            $tma = $ativo + $config->risco_brasil + ($config->beta*$config->equity);
-            $taxa_perpetuidade = $tma - $valuation->projecao_receita;
-            
-            $valuation->perpetuidade_ano_1 = $valuation->ebitda_ano_1 / (1 + ($tma / 100));
-            $valuation->perpetuidade_ano_2 = $valuation->ebitda_ano_2 / (1 + ($tma / 100)) ** 2;
-            $valuation->perpetuidade_ano_3 = $valuation->ebitda_ano_3 / (1 + ($tma / 100)) ** 3;
-            $valuation->perpetuidade_ano_4 = $valuation->ebitda_ano_4 / (1 + ($tma / 100)) ** 4;
-            $valuation->perpetuidade_ano_5 = $valuation->ebitda_ano_5 / (1 + ($tma / 100)) ** 5;
-            $valuation->perpetuidade_final = $valuation->ebitda_ano_5 / (1 + ($taxa_perpetuidade / 100));
-
-            $valuation->resultado = $valuation->perpetuidade_ano_1 + $valuation->perpetuidade_ano_2 + $valuation->perpetuidade_ano_3 + $valuation->perpetuidade_ano_4 +   $valuation->perpetuidade_ano_5 + $valuation->perpetuidade_final;
-            
-            $valuation->save();
-        }
-        
-        
-
-        if( $valuation->save() )
-        {
-            return new ValuationResource( $valuation );
-        }
-    }
-    */
-
     public function GetInfoFormulario(Request $request)
     {
         $nome_pessoa = $request->input('nome_pessoa');
@@ -101,8 +32,7 @@ class ValuationController extends Controller
         $email = $request->input('email');
         $projecao_receita = $request->input('projecao_receita');
         $receita_atual = $request->input('receita_atual');
-        $custos_diretos = $request->input('custos_diretos');
-        $custos_fixos = $request->input('custos_fixos');
+        $custos = $request->input('custos');
 
         $info = array(
             'nome_pessoa' => $nome_pessoa,
@@ -110,8 +40,7 @@ class ValuationController extends Controller
             'email' => $email,
             'projecao' => $projecao_receita,
             'receita_atual' => $receita_atual,
-            'custos_diretos' => $custos_diretos,
-            'custos_fixos' => $custos_fixos
+            'custos' => $custos
         );
         
         $this->CalcularEbitdaAtual(
@@ -124,7 +53,7 @@ class ValuationController extends Controller
         Array $info
     ) {
         //$valuation = new Valuation;
-        $info['ebitda_atual'] = $info['receita_atual'] - ($info['custos_diretos']+$info['custos_fixos']);
+        $info['ebitda_atual'] = $info['receita_atual'] - ($info['custos']);
         
         $this->CalcularMargemEbitda(
             $info
@@ -284,15 +213,7 @@ class ValuationController extends Controller
         Mail::to($valuation['email'])
             ->cc('contato@easyvalue.com.br')
             ->send(new ValuationResult($valuation));
-        /*$data = array('name'=>"Virat Gandhi");
         
-        Mail::send(['text'=>'mail'], $data, function($message) {
-            $message->to($email, 'Valuation')->subject
-                ('Testando envio de email easyalue');
-            $message->from('contato@easyvalue.com.br','Easy Value');
-        });
-        echo 'enviado';
-        */
     }
 
 }
